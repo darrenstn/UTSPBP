@@ -9,16 +9,41 @@ type User struct {
 	Password string `json:"-"`
 }
 
-type UserResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-	Data    User   `json:"data"`
+type Room struct {
+	ID       int    `json:"room_id" gorm:"primaryKey"`
+	RoomName string `json:"room_name"`
 }
 
-type UsersResponse struct {
+type Rooms struct {
+	Rooms []Room `json:"rooms"`
+}
+
+type RoomsResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
-	Data    []User `json:"data"`
+	Data    Rooms  `json:"data"`
+}
+
+type Participant struct {
+	ID        int    `json:"id"`
+	AccountID int    `json:"id_account"`
+	Username  string `json:"username"`
+}
+
+type RoomParticipants struct {
+	ID           int           `json:"id"`
+	RoomName     string        `json:"room_name"`
+	Participants []Participant `json:"participants"`
+}
+
+type DetailRoomParticipants struct {
+	RoomsParticipants RoomParticipants `json:"room"`
+}
+
+type RoomParticipantsResponse struct {
+	Status  int                    `json:"status"`
+	Message string                 `json:"message"`
+	Data    DetailRoomParticipants `json:"data"`
 }
 
 type Response struct {

@@ -14,8 +14,9 @@ func main() {
 	//loadEnv()
 
 	router := mux.NewRouter()
-	router.HandleFunc("/users", controllers.GetAllUsers).Methods("GET")
-	router.HandleFunc("/v2/user", controllers.InsertUserV2).Methods("POST")
+	router.HandleFunc("/rooms", controllers.GetAllRooms).Methods("GET")
+	router.HandleFunc("/detail/room", controllers.GetDetailRoom).Methods("GET")
+	router.HandleFunc("/v1/user", controllers.InsertUser).Methods("POST")
 	router.HandleFunc("/v1/user", controllers.UpdateUser).Methods("PUT")
 	router.HandleFunc("/v2/user", controllers.UpdateUserV2).Methods("PUT")
 	router.HandleFunc("/user/{user_id}", controllers.DeleteUser).Methods("DELETE")

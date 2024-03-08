@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -12,74 +11,159 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetAllUsers..
-func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+// GetAllRooms..
+func GetAllRooms(w http.ResponseWriter, r *http.Request) {
 	db := connect()
 	defer db.Close()
 
-	query := "SELECT id, name, age, address, email FROM users"
-
-	user_id := r.URL.Query()["user_id"]
-
-	if user_id != nil {
-		query += " WHERE id='" + user_id[0] + "'"
-	}
+	query := "SELECT id, room_name FROM rooms"
 
 	rows, err := db.Query(query)
 	if err != nil {
-		log.Println(err)
-		var response m.Response
-		response.Status = 400
-		response.Message = "Error"
-		json.NewEncoder(w).Encode(response)
+		sendModifiedResponse(w, 400, "Query Error")
 		return
 	}
 
-	var user m.User
-	var users []m.User
+	var room m.Room
+	var rooms []m.Room
+	var result m.Rooms
 
 	for rows.Next() {
-		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address, &user.Email); err != nil {
-			log.Println(err)
+		if err := rows.Scan(&room.ID, &room.RoomName); err != nil {
+			sendModifiedResponse(w, 400, "Scan Error")
 			return
 		} else {
-			users = append(users, user)
+			rooms = append(rooms, room)
 		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 
-	var response m.UsersResponse
+	var response m.RoomsResponse
 	response.Status = 200
 	response.Message = "Success"
-	response.Data = users
+	result.Rooms = rooms
+	response.Data = result
 	json.NewEncoder(w).Encode(response)
 }
 
-// InsertUserV2..
-func InsertUserV2(w http.ResponseWriter, r *http.Request) {
-	db := connectGorm()
+// GetDetailRoom..
+func GetDetailRoom(w http.ResponseWriter, r *http.Request) {
+	db := connect()
+	defer db.Close()
+
+	room_id := r.URL.Query()["room_id"]
+
+	if room_id == nil {
+		sendModifiedResponse(w, 400, "Room id not provided")
+		return
+	}
+
+	query := "SELECT id, room_name FROM rooms WHERE id=" + room_id[0]
+
+	rows, err := db.Query(query)
+	if err != nil {
+		sendModifiedResponse(w, 400, "Query Error")
+		return
+	}
+
+	var roomParticipants m.RoomParticipants
+
+	for rows.Next() {
+		if err := rows.Scan(&roomParticipants.ID, &roomParticipants.RoomName); err != nil {
+			sendModifiedResponse(w, 400, "Scan Error")
+			return
+		}
+	}
+
+	query = "SELECT p.id, p.id_account, a.username FROM participants p JOIN accounts a ON p.id_account = a.id WHERE p.id_room=" + room_id[0]
+
+	rows, err = db.Query(query)
+	if err != nil {
+		sendModifiedResponse(w, 400, "Query Error")
+		return
+	}
+
+	var participant m.Participant
+	var participants []m.Participant
+
+	for rows.Next() {
+		if err := rows.Scan(&participant.ID, &participant.AccountID, &participant.Username); err != nil {
+			sendModifiedResponse(w, 400, "Query Error")
+			return
+		} else {
+			participants = append(participants, participant)
+		}
+	}
+	roomParticipants.Participants = participants
+
+	w.Header().Set("Content-Type", "application/json")
+
+	var response m.RoomParticipantsResponse
+	var detail_room m.DetailRoomParticipants
+	response.Status = 200
+	response.Message = "Success"
+	detail_room.RoomsParticipants = roomParticipants
+	response.Data = detail_room
+	json.NewEncoder(w).Encode(response)
+}
+
+func InsertUser(w http.ResponseWriter, r *http.Request) {
+	db := connect()
+	defer db.Close()
 
 	err := r.ParseForm()
 	if err != nil {
+		sendModifiedResponse(w, 400, "Parse Form Error")
 		return
 	}
 
-	name := r.Form.Get("name")
-	age, _ := strconv.Atoi(r.Form.Get("age"))
-	address := r.Form.Get("address")
-	email := r.Form.Get("email")
-	password := r.Form.Get("password")
+	room_id := r.URL.Query()["room_id"]
+	acc_id := r.URL.Query()["account_id"]
 
-	user := &m.User{Name: name, Age: age, Address: address, Email: email, Password: password}
-	result := db.Create(user)
-
-	if result.Error != nil {
-		sendModifiedResponse(w, 400, "Insert Failed")
+	if room_id == nil || acc_id == nil {
+		sendModifiedResponse(w, 400, "Room id or account id not provided")
 		return
 	}
 
-	sendModifiedResponse(w, 200, "Insert Success")
+	query := "SELECT id FROM rooms WHERE id=" + room_id[0]
+
+	rows, err := db.Query(query)
+	if err != nil {
+		sendModifiedResponse(w, 400, "Query Error")
+		return
+	}
+
+	if !rows.Next() {
+		sendModifiedResponse(w, 400, "Room not found")
+		return
+	}
+
+	query = "SELECT id FROM accounts WHERE id=" + acc_id[0]
+
+	rows, err = db.Query(query)
+	if err != nil {
+		sendModifiedResponse(w, 400, "Query Error")
+		return
+	}
+
+	if !rows.Next() {
+		sendModifiedResponse(w, 400, "Account not found")
+		return
+	}
+
+	query = "select g.max_player FROM rooms r JOIN games g ON r.id_game = g.id where r.id=" + room_id[0]
+
+	rows, err = db.Query(query)
+	if err != nil {
+		sendModifiedResponse(w, 400, "Query Error")
+		return
+	}
+
+	if rows.Next() {
+
+	}
+
 }
 
 // UpdateUser..
