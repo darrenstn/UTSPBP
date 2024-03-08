@@ -191,7 +191,6 @@ func InsertRoom(w http.ResponseWriter, r *http.Request) {
 		acc_id,
 	)
 
-	var response m.Response
 	if errQuery == nil {
 		sendModifiedResponse(w, 200, "Insert Success")
 	} else {
