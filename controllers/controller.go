@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	m "UTS/models"
@@ -187,14 +188,15 @@ func InsertRoom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, errQuery := db.Exec("INSERT INTO participants(id_room, id_account) values(?, ?)",
-		room_id,
-		acc_id,
+		room_id[0],
+		acc_id[0],
 	)
 
 	if errQuery == nil {
 		sendModifiedResponse(w, 200, "Insert Success")
 	} else {
-		sendModifiedResponse(w, 200, "Insert Failed")
+		sendModifiedResponse(w, 400, "Insert Failed")
+		fmt.Println(errQuery)
 	}
 }
 
