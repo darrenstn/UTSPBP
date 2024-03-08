@@ -156,9 +156,50 @@ func InsertRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rows.Next() {
+	var maxPlayer int
+	var countPlayer int
 
+	if rows.Next() {
+		if err := rows.Scan(&maxPlayer); err != nil {
+			sendModifiedResponse(w, 400, "Query Error")
+			return
+		}
 	}
+
+	query = "Select COUNT(id) FROM participants where id_room =" + room_id[0]
+
+	rows, err = db.Query(query)
+	if err != nil {
+		sendModifiedResponse(w, 400, "Query Error")
+		return
+	}
+
+	if rows.Next() {
+		if err := rows.Scan(&countPlayer); err != nil {
+			sendModifiedResponse(w, 400, "Query Error")
+			return
+		}
+	}
+
+	if countPlayer >= maxPlayer {
+		sendModifiedResponse(w, 400, "Player Full")
+		return
+	}
+
+	_, errQuery := db.Exec("INSERT INTO participants(id_room, id_account) values(?, ?)",
+		room_id,
+		acc_id,
+	)
+
+	var response m.Response
+	if errQuery == nil {
+		sendModifiedResponse(w, 200, "Insert Success")
+	} else {
+		sendModifiedResponse(w, 200, "Insert Failed")
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 
 }
 
