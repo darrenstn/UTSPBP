@@ -16,11 +16,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/rooms", controllers.GetAllRooms).Methods("GET")
 	router.HandleFunc("/detail/room", controllers.GetDetailRoom).Methods("GET")
-	router.HandleFunc("/v1/user", controllers.InsertUser).Methods("POST")
-	router.HandleFunc("/v1/user", controllers.UpdateUser).Methods("PUT")
-	router.HandleFunc("/v2/user", controllers.UpdateUserV2).Methods("PUT")
-	router.HandleFunc("/user/{user_id}", controllers.DeleteUser).Methods("DELETE")
-	router.HandleFunc("/login", controllers.Login).Methods("POST")
+	router.HandleFunc("/room", controllers.InsertRoom).Methods("POST")
 
 	http.Handle("/", router)
 	fmt.Println("Connected to port 8888")
