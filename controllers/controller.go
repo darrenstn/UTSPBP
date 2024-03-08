@@ -197,10 +197,6 @@ func InsertRoom(w http.ResponseWriter, r *http.Request) {
 	} else {
 		sendModifiedResponse(w, 200, "Insert Failed")
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-
 }
 
 func sendModifiedResponse(w http.ResponseWriter, stat int, msg string) {
